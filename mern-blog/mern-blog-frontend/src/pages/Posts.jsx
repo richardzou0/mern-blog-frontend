@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-function App() {
+function Posts() {
   const [posts, setPosts] = useState([]);
   const [form, setForm] = useState({ title: "", body: "" });
 
@@ -62,4 +62,4 @@ function App() {
   );
 }
 
-export default App;
+export default Posts;
