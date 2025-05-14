@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import PostCard from "../components/PostCard";
+import { useNavigate } from "react-router-dom";
 
 // Backend URL stored in environment variable
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -11,16 +12,28 @@ const Admin = () => {
   // Holds the form data for creating or editing a post
   const [editPost, setEditPost] = useState(null);
   const [editForm, setEditForm] = useState({ title: "", body: "" });
+  const navigate = useNavigate();
 
   // Fetch all blog posts when the component first mounts
   useEffect(() => {
-    fetch(`${BACKEND_URL}/posts`)
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/account");
+      return;
+    }
+
+    fetch(`${BACKEND_URL}/posts`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => setPosts(data));
-  }, []);
+  }, [navigate]);
 
   // Handle deleting a post by ID
   const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
     await fetch(`${BACKEND_URL}/posts/${id}`, {
       method: "DELETE",
     });
@@ -38,11 +51,17 @@ const Admin = () => {
   const handleEditChange = (e) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
+
     await fetch(`${BACKEND_URL}/posts/${editPost}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(editForm),
     });
 
@@ -50,7 +69,11 @@ const Admin = () => {
     setEditPost(null);
     setEditForm({ title: "", body: "" });
 
-    const res = await fetch(`${BACKEND_URL}/posts`);
+    const res = await fetch(`${BACKEND_URL}/posts`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     const data = await res.json();
     setPosts(data);
   };
